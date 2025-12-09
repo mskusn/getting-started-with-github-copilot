@@ -33,7 +33,7 @@ document.addEventListener("DOMContentLoaded", () => {
                     ${details.participants
                       .map(
                         (email) =>
-                          `<li class="participant-item">${email}</li>`
+                          `<li class="participant-item">${email} <span class='delete-participant' title='Remove participant' data-activity='${name}' data-email='${email}' style='cursor:pointer;'>&#128465;</span></li>`
                       )
                       .join("")}
                   </ul>`
@@ -98,4 +98,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Initialize app
   fetchActivities();
+  // Delegate click event for delete icons
+  document.addEventListener("click", async (event) => {
+    if (event.target.classList.contains("delete-participant")) {
+      const activity = event.target.getAttribute("data-activity");
+      const email = event.target.getAttribute("data-email");
+      if (activity && email) {
+        try {
+          const response = await fetch(`/activities/${encodeURIComponent(activity)}/unregister?email=${encodeURIComponent(email)}`, {
+            method: "POST"
+          });
+          const result = await response.json();
+          if (response.ok) {
+            fetchActivities();
+          } else {
+            alert(result.detail || "Failed to remove participant.");
+          }
+        } catch (error) {
+          alert("Error removing participant.");
+        }
+      }
+    }
+  });
 });
